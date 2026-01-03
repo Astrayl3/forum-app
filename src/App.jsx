@@ -1,20 +1,38 @@
 import React from 'react';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import Login from './Login'
 import './App.css';
 
 function App() {
+  
+  const location = useLocation();
+
   return (
     <div className="container">
       <header>
         <h1>
-          <a href="/">Our Wonderful App</a>
+          <Link to="/">Our Wonderful App</Link>
         </h1>
+        <nav>
+          {location.pathname !== '/Login' && (
+          <Link to="/Login" className="login-button">Log In</Link>
+          )}
+        </nav>
       </header>
 
       <main>
-        <h3>Hello this is the homepage</h3>
-        <p>
-          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Alias magnam dolorem amet exercitationem eos voluptates debitis facere vitae repellat. Est ipsa perferendis consectetur tempore quisquam tenetur, aliquid dolores laudantium voluptatibus.
-        </p>
+        <Routes>
+          {/* Trang chủ/Dashboard */}
+          <Route path="/" element={
+            <>
+              <h3>Welcome to your dashboard!</h3>
+              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati dicta id architecto nesciunt explicabo fugit autem, optio temporibus animi harum. Ab repellendus molestiae ex laborum cum dolore. Cumque, tempore ducimus!</p>
+            </>
+          } />
+
+          {/* Trang Login */}
+          <Route path="/login" element={<Login />} />
+        </Routes>
       </main>
 
       <footer>
