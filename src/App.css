@@ -85,7 +85,7 @@ body {
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  box-sizing: border-box; /* Quan trọng để input không tràn khỏi card */
+  box-sizing: border-box; 
   transition: border-color 0.3s;
 }
 

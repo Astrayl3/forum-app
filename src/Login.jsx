@@ -1,21 +1,33 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './App.css';
 
 function Login() {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [error, setError] = useState(''); // Lưu lỗi từ server
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Đang đăng nhập với:", formData);
-    // Sau này sẽ gọi API tại đây
+  const handleSubmit = async (e) => {
+      e.preventDefault();
+      setError('');
+
+      try {
+        const response = await axios.post('http://localhost:3000/api/login', formData);
+
+        if (response.data.success) {
+          alert("Đăng nhập thành công!");
+          // Lưu token hoặc thông tin user nếu cần, sau đó về Dashboard
+          navigate('/'); 
+        }
+      } catch (err) {
+        setError(err.response?.data?.error || "Something went wrong");
+      }
   };
 
   return (
@@ -23,6 +35,7 @@ function Login() {
       <div className="login-card">
         <h2>Login</h2>
         <p>Welcome back! Please enter your details.</p>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
         
         <form onSubmit={handleSubmit}>
           <div className="input-group">
@@ -58,7 +71,7 @@ function Login() {
 
         <div className="login-footer">
           <span>Don't have an account? </span>
-          <a href="/register">Sign up</a>
+          <a href="/Register">Sign up</a>
         </div>
       </div>
     </div>

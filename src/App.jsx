@@ -1,11 +1,13 @@
 import React from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import Login from './Login'
+import Register from './Register';
 import './App.css';
 
 function App() {
   
   const location = useLocation();
+  const isAuthPage = location.pathname === '/Login' || location.pathname === '/Register';
 
   return (
     <div className="container">
@@ -14,9 +16,12 @@ function App() {
           <Link to="/">Our Wonderful App</Link>
         </h1>
         <nav>
-          {location.pathname !== '/Login' && (
-          <Link to="/Login" className="login-button">Log In</Link>
-          )}
+          {!isAuthPage && (
+            <>
+              <Link to="/Login" className="login-button">Log In</Link>
+              <Link to="/Register" className="login-button" style={{ backgroundColor: '#28a745' }}>Register</Link>
+            </>
+          )}      
         </nav>
       </header>
 
@@ -32,6 +37,7 @@ function App() {
 
           {/* Trang Login */}
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
         </Routes>
       </main>
 
