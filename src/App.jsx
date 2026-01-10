@@ -1,10 +1,13 @@
 import React from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import Login from './Login'
 import Register from './Register';
 import './App.css';
 
 function App() {
+
+  axios.defaults.withCredentials = true;
   
   const location = useLocation();
   const isAuthPage = location.pathname === '/Login' || location.pathname === '/Register';
@@ -30,7 +33,7 @@ function App() {
           {/* Trang chủ/Dashboard */}
           <Route path="/" element={
             <>
-              <h3>Welcome to your dashboard!</h3>
+              <h3>Welcome to our forum post</h3>
               <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati dicta id architecto nesciunt explicabo fugit autem, optio temporibus animi harum. Ab repellendus molestiae ex laborum cum dolore. Cumque, tempore ducimus!</p>
             </>
           } />

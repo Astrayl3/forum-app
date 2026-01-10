@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
 
+
 function Login() {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState(''); // Lưu lỗi từ server
@@ -13,12 +14,16 @@ function Login() {
     setFormData({ ...formData, [name]: value });
   };
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleSubmit = async (e) => {
-      e.preventDefault();
-      setError('');
+    e.preventDefault();
+    setError('');
+    if (isLoading) return;
+    setIsLoading(true);
 
       try {
-        const response = await axios.post('http://localhost:3000/api/login', formData);
+        const response = await axios.post('http://localhost:3000/api/Login', formData, { withCredentials: true });
 
         if (response.data.success) {
           alert("Đăng nhập thành công!");

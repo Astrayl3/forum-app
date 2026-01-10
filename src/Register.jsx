@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './App.css'; 
+import './App.css';
+
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -9,22 +11,30 @@ function Register() {
     confirmPassword: ''
   });
 
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isLoading) return;
+    setIsLoading(true);
     if (formData.password !== formData.confirmPassword) {
         alert("Mật khẩu không khớp!");
         return;
     }
 
     try {
-        const response = await axios.post('http://localhost:3000/api/register', {
+        const response = await axios.post('http://localhost:3000/api/Register', {
         username: formData.username,
         password: formData.password 
+        }, {
+          withCredentials: true 
         });
 
         if (response.data.success) {
@@ -32,6 +42,7 @@ function Register() {
         navigate('/Login');
         }
     } catch (err) {
+        setIsLoading(false);
         alert(err.response?.data?.error || "Đăng ký thất bại");
     }
   };
