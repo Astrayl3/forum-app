@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuth = async () => {
         try {
-            const res = await axios.get('http://localhost:3000/api/Me', { withCredentials: true });
+            const res = await axios.get('/api/Me', { withCredentials: true });
             if (res.data.isLoggedIn) {
                 setUser({ id: res.data.userId, username: res.data.username });
             } else {
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
 
 const logout = async () => {
     try {
-        await axios.post('http://localhost:3000/api/Logout', {}, { withCredentials: true });
+        await axios.post('/api/Logout', {}, { withCredentials: true });
         setUser(null);
     } catch (err) {
         console.error("Lỗi khi đăng xuất:", err);

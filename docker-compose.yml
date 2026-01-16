@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  forum-app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./uploads:/app/uploads
+      - ./database.db:/app/database.db
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=${NODE_ENV}
+    networks:
+      - tunnel-network
+
+  quick-tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://forum-app:3000
+    networks:
+      - tunnel-network
+
+networks:
+  tunnel-network:
+    driver: bridge

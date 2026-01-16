@@ -9,7 +9,7 @@ function EditPost() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        axios.get(`http://localhost:3000/api/posts/${id}`)
+        axios.get(`/api/posts/${id}`)
             .then(res => {
                 setTitle(res.data.title);
                 setContent(res.data.content);
@@ -19,7 +19,7 @@ function EditPost() {
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(`http://localhost:3000/api/posts/${id}`, { title, content }, { withCredentials: true });
+            await axios.put(`/api/posts/${id}`, { title, content }, { withCredentials: true });
             navigate('/');
         } catch (err) {
             alert("Lỗi khi cập nhật");

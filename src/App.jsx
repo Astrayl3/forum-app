@@ -18,7 +18,7 @@ function App() {
 
   const fetchPosts = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/posts');
+      const res = await axios.get('/api/posts');
       setPosts(res.data);
     } catch (err) {
       console.error("Lỗi lấy bài viết:", err);
@@ -28,7 +28,7 @@ function App() {
   const handleDelete = async (postId) => {
     if (window.confirm("Do you want to delete this post?")) {
       try {
-        await axios.delete(`http://localhost:3000/api/posts/${postId}`, { withCredentials: true });
+        await axios.delete(`/api/posts/${postId}`, { withCredentials: true });
         setPosts(posts.filter(post => post.id !== postId));
       } catch (err) {
         alert(err.response?.data?.error || "Delete failed");
@@ -91,7 +91,7 @@ function App() {
                       <p>{post.content}</p>
                       {post.image && (
                           <div className="post-image">
-                              <img src={`http://localhost:3000${post.image}`} alt="Post content" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '10px' }} />
+                              <img src={post.image} alt="Post content" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '10px' }} />
                           </div>
                       )}
                       <div className="post-meta">

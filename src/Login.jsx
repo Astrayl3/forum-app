@@ -25,7 +25,7 @@ function Login() {
     setIsLoading(true);
 
       try {
-        const response = await axios.post('http://localhost:3000/api/login', formData, { withCredentials: true });
+        const response = await axios.post('/api/login', formData, { withCredentials: true });
 
         if (response.data.success) {
           setUser({ id: response.data.userId, username: formData.username });

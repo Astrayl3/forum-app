@@ -32,8 +32,9 @@ const upload = multer({ storage: storage });
 app.use('/uploads', express.static('uploads'));
 
 app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
 
 const db = new Database('database.db');
@@ -147,7 +148,7 @@ app.get('/api/Me', (req, res) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_cua_ban');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         res.json({ 
             isLoggedIn: true, 
             userId: decoded.id,
@@ -184,7 +185,7 @@ app.post('/api/posts', upload.single('image'), (req, res) => {
     if (!token) return res.status(401).json({ error: "Chưa đăng nhập" });
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_cua_ban');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const { title, content } = req.body;
         
         const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
@@ -203,7 +204,7 @@ app.delete('/api/posts/:id', (req, res) => {
     if (!token) return res.status(401).json({ error: "Not logged in" });
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_cua_ban');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const statement = db.prepare("DELETE FROM posts WHERE id = ? AND author_id = ?");
         const result = statement.run(req.params.id, decoded.id);
 
@@ -228,7 +229,7 @@ app.put('/api/posts/:id', (req, res) => {
     if (!token) return res.status(401).json({ error: "Not logged in" });
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_cua_ban');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const { title, content } = req.body;
 
         const statement = db.prepare("UPDATE posts SET title = ?, content = ?, is_updated = 1 WHERE id = ? AND author_id = ?");
@@ -244,4 +245,16 @@ app.put('/api/posts/:id', (req, res) => {
     }
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+// For static file from folder dist (after npm run build)
+const __dirname = path.resolve();
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Handle 404 for Single Page Application (React Router)
+// If user refresh page /login, Node will sent back file index.html
+app.use((req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on port ${PORT}`);
+});
