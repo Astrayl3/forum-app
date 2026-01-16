@@ -89,7 +89,11 @@ function App() {
                       </div>
 
                       <p>{post.content}</p>
-                      
+                      {post.image && (
+                          <div className="post-image">
+                              <img src={`http://localhost:3000${post.image}`} alt="Post content" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '10px' }} />
+                          </div>
+                      )}
                       <div className="post-meta">
                         <span>Posted by: <strong>{post.username}</strong></span>
                         <small>{new Date(post.created_at).toLocaleString()}</small>

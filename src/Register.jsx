@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from './AuthContext';
 import './App.css';
 
-
 function Register() {
+  const { setUser } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -12,34 +13,40 @@ function Register() {
   });
 
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const [isLoading, setIsLoading] = useState(false);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isLoading) return;
-    setIsLoading(true);
+
     if (formData.password !== formData.confirmPassword) {
         alert("Mật khẩu không khớp!");
         return;
     }
 
+    setIsLoading(true);
+
     try {
         const response = await axios.post('http://localhost:3000/api/register', {
-        username: formData.username,
-        password: formData.password 
+            username: formData.username,
+            password: formData.password 
         }, {
-          withCredentials: true 
+            withCredentials: true 
         });
 
         if (response.data.success) {
-        alert("Đăng ký thành công!");
-        navigate('/Login');
+            setUser({ 
+                id: response.data.userId, 
+                username: response.data.username 
+            });
+
+            alert("Đăng ký và đăng nhập thành công!");
+            navigate('/'); 
         }
     } catch (err) {
         setIsLoading(false);
@@ -63,6 +70,7 @@ function Register() {
               value={formData.username}
               onChange={handleChange}
               placeholder="Pick a username"
+              className="dark-input"
               required 
             />
           </div>
@@ -76,6 +84,7 @@ function Register() {
               value={formData.password}
               onChange={handleChange}
               placeholder="Create a password"
+              className="dark-input"
               required 
             />
           </div>
@@ -89,12 +98,13 @@ function Register() {
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="Repeat your password"
+              className="dark-input"
               required 
             />
           </div>
 
-          <button type="submit" className="login-submit-btn">
-            Register
+          <button type="submit" className="login-submit-btn" disabled={isLoading}>
+            {isLoading ? "Registering..." : "Register"}
           </button>
         </form>
 

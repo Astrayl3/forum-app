@@ -2,18 +2,39 @@ import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
 import Database from 'better-sqlite3';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
 
 const app = express();
+app.use(express.json());
+app.use(cookieParser());
+
+const uploadDir = './uploads';
+if (!fs.existsSync(uploadDir)) { fs.mkdirSync(uploadDir); }
+
+// Multer Storege Configuration
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/'); // File save in uploads
+    },
+    filename: (req, file, cb) => {
+        // Filename = timestamp
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
+app.use('/uploads', express.static('uploads'));
+
 app.use(cors({
     origin: 'http://localhost:5173',
     credentials: true
 }));
-app.use(express.json());
-app.use(cookieParser());
 
 const db = new Database('database.db');
 const createTables = db.transaction(() => {
@@ -44,6 +65,10 @@ const createTables = db.transaction(() => {
         }
     }
 
+    try {
+    db.prepare(`ALTER TABLE posts ADD COLUMN image TEXT`).run();
+    } catch (err){}
+
     console.log("Hệ thống Database đã sẵn sàng.");
 });
 
@@ -73,7 +98,7 @@ app.post('/api/register', async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000,
         });
 
-        res.json({ success: true, message: "User registered and logged in!" });
+        res.json({ success: true, userId: userId, username: username, message: "User registered and logged in!" });
     } catch (err) {
         console.error(err);
         res.status(400).json({ error: "Username already exists" });
@@ -154,20 +179,22 @@ app.get('/api/posts', (req, res) => {
     res.json(posts);
 });
 
-app.post('/api/posts', (req, res) => {
+app.post('/api/posts', upload.single('image'), (req, res) => {
     const token = req.cookies.session_id;
-    if (!token) return res.status(401).json({ error: "You need to Log in" });
+    if (!token) return res.status(401).json({ error: "Chưa đăng nhập" });
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_cua_ban');
         const { title, content } = req.body;
+        
+        const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
 
-        const statement = db.prepare("INSERT INTO posts (title, content, author_id) VALUES (?, ?, ?)");
-        statement.run(title, content, decoded.id);
+        const statement = db.prepare("INSERT INTO posts (title, content, author_id, image) VALUES (?, ?, ?, ?)");
+        statement.run(title, content, decoded.id, imagePath);
 
-        res.json({ success: true, message: "Post created successfully!" });
+        res.json({ success: true, message: "Đăng bài thành công!" });
     } catch (err) {
-        res.status(401).json({ error: "Invalid token" });
+        res.status(401).json({ error: "Lỗi xác thực" });
     }
 });
 
