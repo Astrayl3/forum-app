@@ -30,7 +30,7 @@ function Register() {
     }
 
     try {
-        const response = await axios.post('http://localhost:3000/api/Register', {
+        const response = await axios.post('http://localhost:3000/api/register', {
         username: formData.username,
         password: formData.password 
         }, {
@@ -100,7 +100,7 @@ function Register() {
 
         <div className="login-footer">
           <span>Already have an account? </span>
-          <a href="/Login">Log In</a>
+          <a href="/login">Log In</a>
         </div>
       </div>
     </div>

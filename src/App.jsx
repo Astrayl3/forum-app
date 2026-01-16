@@ -1,16 +1,22 @@
 import React from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from './AuthContext';
 import Login from './Login'
 import Register from './Register';
 import './App.css';
 
-function App() {
+axios.defaults.withCredentials = true;
 
-  axios.defaults.withCredentials = true;
+function App() {
   
+  const { user, logout, loading } = useAuth();
   const location = useLocation();
-  const isAuthPage = location.pathname === '/Login' || location.pathname === '/Register';
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+
+  if (loading) {
+    return <div className="loading-screen">Loading application...</div>;
+  }
 
   return (
     <div className="container">
@@ -19,12 +25,20 @@ function App() {
           <Link to="/">Our Wonderful App</Link>
         </h1>
         <nav>
-          {!isAuthPage && (
-            <>
-              <Link to="/Login" className="login-button">Log In</Link>
-              <Link to="/Register" className="login-button" style={{ backgroundColor: '#28a745' }}>Register</Link>
-            </>
-          )}      
+          {/* If Logged In, show Logout button */}
+          {user ? (
+            <div className="user-nav">
+              <button onClick={logout} className="logout-button" style={{ backgroundColor: '#d61c1c' }}>Log Out</button>
+            </div>
+          ) : (
+            /* If not show Login/Register */
+            !isAuthPage && (
+              <>
+                <Link to="/login" className="login-button">Log In</Link>
+                <Link to="/register" className="login-button" style={{ backgroundColor: '#28a745' }}>Register</Link>
+              </>
+            )
+          )}     
         </nav>
       </header>
 
@@ -33,7 +47,7 @@ function App() {
           {/* Trang chủ/Dashboard */}
           <Route path="/" element={
             <>
-              <h3>Welcome to our forum post</h3>
+              <h3>Welcome to our forum post {user ? <span className="highlight">{user.username}</span> : ""}</h3>
               <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati dicta id architecto nesciunt explicabo fugit autem, optio temporibus animi harum. Ab repellendus molestiae ex laborum cum dolore. Cumque, tempore ducimus!</p>
             </>
           } />
@@ -45,7 +59,7 @@ function App() {
       </main>
 
       <footer>
-        <small>&copy; Our Wonderful App</small>
+        <small>&copy;{new Date().getFullYear()} Our Wonderful App</small>
       </footer>
     </div>
   );

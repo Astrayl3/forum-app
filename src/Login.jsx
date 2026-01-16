@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 import axios from 'axios';
 import './App.css';
 
 
 function Login() {
+  const { setUser } = useAuth();
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState(''); // Lưu lỗi từ server
   const navigate = useNavigate();
@@ -23,9 +25,10 @@ function Login() {
     setIsLoading(true);
 
       try {
-        const response = await axios.post('http://localhost:3000/api/Login', formData, { withCredentials: true });
+        const response = await axios.post('http://localhost:3000/api/login', formData, { withCredentials: true });
 
         if (response.data.success) {
+          setUser({ username: formData.username });
           alert("Đăng nhập thành công!");
           // Lưu token hoặc thông tin user nếu cần, sau đó về Dashboard
           navigate('/'); 
@@ -76,7 +79,7 @@ function Login() {
 
         <div className="login-footer">
           <span>Don't have an account? </span>
-          <a href="/Register">Sign up</a>
+          <a href="/register">Sign up</a>
         </div>
       </div>
     </div>

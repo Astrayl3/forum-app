@@ -11,9 +11,9 @@ const app = express();
 app.use(cors({
     origin: 'http://localhost:5173',
     credentials: true
-})); // Cho phép API
-app.use(express.json()); // Để đọc JSON
-app.use(cookieParser()); // Để đọc cookie
+}));
+app.use(express.json());
+app.use(cookieParser());
 
 const db = new Database('database.db');
 const createTables = db.transaction(() => {
@@ -29,7 +29,7 @@ const createTables = db.transaction(() => {
 
 createTables();
 
-app.post('/api/Register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
     const { username, password } = req.body;
     try {
         const salt = await bcrypt.genSalt(10);
@@ -60,7 +60,7 @@ app.post('/api/Register', async (req, res) => {
     }
 });
 
-app.post('/api/Login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const user = db.prepare("SELECT * FROM users WHERE username = ?").get(username);
@@ -93,6 +93,35 @@ app.post('/api/Login', async (req, res) => {
         console.error(err);
         return res.status(500).json({ error: "Internal Server Error" });
     }
+});
+
+app.get('/api/Me', (req, res) => {
+    const token = req.cookies.session_id;
+
+    if (!token) {
+        return res.json({ isLoggedIn: false });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_cua_ban');
+        res.json({ 
+            isLoggedIn: true, 
+            username: decoded.username 
+        });
+    } catch (err) {
+        res.json({ isLoggedIn: false });
+    }
+});
+
+app.post('/api/Logout', (req, res) => {
+    res.clearCookie('session_id', {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        path: '/'
+    });
+
+    res.json({ success: true, message: "Đã đăng xuất thành công!" });
 });
 
 app.listen(3000, () => console.log("Server running on port 3000"));
