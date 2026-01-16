@@ -23,8 +23,19 @@ const createTables = db.transaction(() => {
             username TEXT NOT NULL UNIQUE,
             password TEXT NOT NULL
         )
+    `)
+    db.prepare(`
+    CREATE TABLE IF NOT EXISTS posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        author_id INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (author_id) REFERENCES users (id)
+    )
     `).run();
-    console.log("Bảng Users đã sẵn sàng.");
+    console.log("Bảng Users đã sẵn sàng.")
+    console.log("Bảng Posts đã sẵn sàng.");
 });
 
 createTables();
@@ -121,7 +132,34 @@ app.post('/api/Logout', (req, res) => {
         path: '/'
     });
 
-    res.json({ success: true, message: "Đã đăng xuất thành công!" });
+    res.json({ success: true, message: "Logged out successfully!" });
+});
+
+app.get('/api/posts', (req, res) => {
+    const posts = db.prepare(`
+        SELECT posts.*, users.username 
+        FROM posts 
+        JOIN users ON posts.author_id = users.id 
+        ORDER BY posts.created_at DESC
+    `).all();
+    res.json(posts);
+});
+
+app.post('/api/posts', (req, res) => {
+    const token = req.cookies.session_id;
+    if (!token) return res.status(401).json({ error: "You need to Log in" });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_cua_ban');
+        const { title, content } = req.body;
+
+        const statement = db.prepare("INSERT INTO posts (title, content, author_id) VALUES (?, ?, ?)");
+        statement.run(title, content, decoded.id);
+
+        res.json({ success: true, message: "Post created successfully!" });
+    } catch (err) {
+        res.status(401).json({ error: "Invalid token" });
+    }
 });
 
 app.listen(3000, () => console.log("Server running on port 3000"));

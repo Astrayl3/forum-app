@@ -29,8 +29,6 @@ function Login() {
 
         if (response.data.success) {
           setUser({ username: formData.username });
-          alert("Đăng nhập thành công!");
-          // Lưu token hoặc thông tin user nếu cần, sau đó về Dashboard
           navigate('/'); 
         }
       } catch (err) {
