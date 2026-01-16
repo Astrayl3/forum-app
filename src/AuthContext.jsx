@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const res = await axios.get('http://localhost:3000/api/Me', { withCredentials: true });
             if (res.data.isLoggedIn) {
-                setUser({ username: res.data.username });
+                setUser({ id: res.data.userId, username: res.data.username });
             } else {
                 setUser(null);
             }

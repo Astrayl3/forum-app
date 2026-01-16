@@ -200,3 +200,63 @@ body {
   text-align: center;
   width: 100%;
 }
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.post-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.edit-link {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.edit-link:hover {
+  text-decoration: underline;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #d61c1c;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: bold;
+  padding: 0;
+}
+
+.delete-btn:hover {
+  text-decoration: underline;
+}
+
+.dark-input {
+  width: 100%;
+  background-color: #333333;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 1rem;
+  resize: none;
+  box-sizing: border-box;
+  display: block;
+  font-family: inherit;
+}
+
+.updated-label {
+  font-size: 0.75rem;
+  color: #999;
+  font-weight: normal;
+  font-style: italic;
+  margin-left: 8px;
+  vertical-align: middle;
+}

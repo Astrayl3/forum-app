@@ -23,19 +23,28 @@ const createTables = db.transaction(() => {
             username TEXT NOT NULL UNIQUE,
             password TEXT NOT NULL
         )
-    `)
-    db.prepare(`
-    CREATE TABLE IF NOT EXISTS posts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        author_id INTEGER NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (author_id) REFERENCES users (id)
-    )
     `).run();
-    console.log("Bảng Users đã sẵn sàng.")
-    console.log("Bảng Posts đã sẵn sàng.");
+
+    db.prepare(`
+        CREATE TABLE IF NOT EXISTS posts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            author_id INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (author_id) REFERENCES users (id)
+        )
+    `).run();
+
+    try {
+        db.prepare(`ALTER TABLE posts ADD COLUMN is_updated INTEGER DEFAULT 0`).run();
+    } catch (err) {
+        if (!err.message.includes("duplicate column name")) {
+            console.error("Lỗi khi thêm cột is_updated:", err.message);
+        }
+    }
+
+    console.log("Hệ thống Database đã sẵn sàng.");
 });
 
 createTables();
@@ -96,7 +105,7 @@ app.post('/api/login', async (req, res) => {
                 maxAge: 24 * 60 * 60 * 1000,
             });
 
-            return res.json({ success: true, message: "Logged in successfully!" });
+            return res.json({ success: true, userId: user.id, username: user.username, message: "Logged in successfully!" });
         } else {
             return res.status(400).json({ error: "Incorrect password" });
         }
@@ -108,7 +117,6 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/Me', (req, res) => {
     const token = req.cookies.session_id;
-
     if (!token) {
         return res.json({ isLoggedIn: false });
     }
@@ -117,6 +125,7 @@ app.get('/api/Me', (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_cua_ban');
         res.json({ 
             isLoggedIn: true, 
+            userId: decoded.id,
             username: decoded.username 
         });
     } catch (err) {
@@ -159,6 +168,52 @@ app.post('/api/posts', (req, res) => {
         res.json({ success: true, message: "Post created successfully!" });
     } catch (err) {
         res.status(401).json({ error: "Invalid token" });
+    }
+});
+
+app.delete('/api/posts/:id', (req, res) => {
+    const token = req.cookies.session_id;
+    if (!token) return res.status(401).json({ error: "Not logged in" });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_cua_ban');
+        const statement = db.prepare("DELETE FROM posts WHERE id = ? AND author_id = ?");
+        const result = statement.run(req.params.id, decoded.id);
+
+        if (result.changes > 0) {
+            res.json({ success: true, message: "Post deleted successfully!" });
+        } else {
+            res.status(403).json({ error: "You don't have permission to delete this post" });
+        }
+    } catch (err) {
+        res.status(401).json({ error: "Authentication failed" });
+    }
+});
+
+app.get('/api/posts/:id', (req, res) => {
+    const post = db.prepare("SELECT * FROM posts WHERE id = ?").get(req.params.id);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+    res.json(post);
+});
+
+app.put('/api/posts/:id', (req, res) => {
+    const token = req.cookies.session_id;
+    if (!token) return res.status(401).json({ error: "Not logged in" });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_cua_ban');
+        const { title, content } = req.body;
+
+        const statement = db.prepare("UPDATE posts SET title = ?, content = ?, is_updated = 1 WHERE id = ? AND author_id = ?");
+        const result = statement.run(title, content, req.params.id, decoded.id);
+
+        if (result.changes > 0) {
+            res.json({ success: true });
+        } else {
+            res.status(403).json({ error: "You don't have permission to edit this post" });
+        }
+    } catch (err) {
+        res.status(401).json({ error: "Authentication failed" });
     }
 });
 

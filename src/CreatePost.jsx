@@ -30,12 +30,12 @@ function CreatePost() {
                 <form onSubmit={handleSubmit}>
                     <div className="input-group">
                         <label>Title</label>
-                        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="dark-input" required  />
                     </div>
                     <div className="input-group">
                         <label>Content</label>
                         <textarea rows="5" value={content} onChange={(e) => setContent(e.target.value)} required 
-                                  style={{width: '100%', borderRadius: '8px', border: '1px solid #ddd', padding: '10px'}}></textarea>
+                                  className="dark-input"></textarea>
                     </div>
                     <button type="submit" className="login-submit-btn">Post Now</button>
                 </form>
