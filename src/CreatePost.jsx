@@ -49,7 +49,7 @@ function CreatePost() {
 
                     <div className="input-group">
                         <label>Context</label>
-                        <textarea rows="6" value={content} onChange={(e) => setContent(e.target.value)} required className="dark-input no-resize" />
+                        <textarea rows="10" value={content} onChange={(e) => setContent(e.target.value)} required className="dark-input no-resize" />
                     </div>
 
                     <button type="submit" className="login-submit-btn">Post</button>

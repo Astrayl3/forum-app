@@ -260,3 +260,116 @@ body {
   margin-left: 8px;
   vertical-align: middle;
 }
+
+/* Comment */
+.comment-page {
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: #000; /* Nền đen tuyền */
+  color: #fff;
+  min-height: 100vh;
+  border-left: 1px solid #333;
+  border-right: 1px solid #333;
+}
+
+.back-header {
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  z-index: 10;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  margin-right: 20px;
+  padding: 5px 10px;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.back-button:hover {
+  background-color: #181818;
+}
+
+.original-post {
+  padding: 15px;
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+.post-image-full {
+  width: 100%;
+  border-radius: 15px;
+  margin-top: 15px;
+  border: 1px solid #333;
+}
+
+.reply-section {
+  display: flex;
+  padding: 15px;
+  border-bottom: 1px solid #333;
+}
+
+.reply-input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  outline: none;
+  padding: 10px 0;
+}
+
+.reply-input::placeholder {
+  color: #71767b;
+}
+
+.reply-button {
+  background-color: #1d9bf0; /* Màu xanh đặc trưng */
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 0 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.reply-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.comment-item {
+  padding: 15px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-header {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.author-name {
+  font-weight: bold;
+}
+
+.comment-date {
+  color: #71767b;
+}
+
+.comment-text {
+  font-size: 16px;
+  line-height: 1.4;
+}

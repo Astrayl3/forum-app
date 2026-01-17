@@ -58,6 +58,18 @@ const createTables = db.transaction(() => {
         )
     `).run();
 
+    db.prepare(`
+        CREATE TABLE IF NOT EXISTS comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            post_id INTEGER,
+            author_id INTEGER,
+            content TEXT,
+            image TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (post_id) REFERENCES posts(id)
+        )
+    `).run();
+
     try {
         db.prepare(`ALTER TABLE posts ADD COLUMN is_updated INTEGER DEFAULT 0`).run();
     } catch (err) {
@@ -180,6 +192,7 @@ app.get('/api/posts', (req, res) => {
     res.json(posts);
 });
 
+// Create Post
 app.post('/api/posts', upload.single('image'), (req, res) => {
     const token = req.cookies.session_id;
     if (!token) return res.status(401).json({ error: "Chưa đăng nhập" });
@@ -199,6 +212,7 @@ app.post('/api/posts', upload.single('image'), (req, res) => {
     }
 });
 
+// Delete Post
 app.delete('/api/posts/:id', (req, res) => {
     const token = req.cookies.session_id;
     if (!token) return res.status(401).json({ error: "Not logged in" });
@@ -218,33 +232,98 @@ app.delete('/api/posts/:id', (req, res) => {
     }
 });
 
+// Edit Post
 app.get('/api/posts/:id', (req, res) => {
     const post = db.prepare("SELECT * FROM posts WHERE id = ?").get(req.params.id);
     if (!post) return res.status(404).json({ error: "Post not found" });
     res.json(post);
 });
 
-app.put('/api/posts/:id', (req, res) => {
+app.put('/api/posts/:id', upload.single('image'), (req, res) => {
     const token = req.cookies.session_id;
     if (!token) return res.status(401).json({ error: "Not logged in" });
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const { title, content } = req.body;
+        const { title, content, existingImage } = req.body;
+        const postId = req.params.id;
 
-        const statement = db.prepare("UPDATE posts SET title = ?, content = ?, is_updated = 1 WHERE id = ? AND author_id = ?");
-        const result = statement.run(title, content, req.params.id, decoded.id);
+        let imagePath = existingImage;
+        if (req.file) {
+            imagePath = `/uploads/${req.file.filename}`;
+        }
+
+        const statement = db.prepare(`
+            UPDATE posts 
+            SET title = ?, content = ?, image = ?, is_updated = 1 
+            WHERE id = ? AND author_id = ?
+        `);
+
+        const result = statement.run(title, content, imagePath, postId, decoded.id);
 
         if (result.changes > 0) {
-            res.json({ success: true });
+            res.json({ success: true, image: imagePath });
         } else {
-            res.status(403).json({ error: "You don't have permission to edit this post" });
+            res.status(403).json({ error: "Không có quyền sửa hoặc bài viết không tồn tại" });
         }
     } catch (err) {
+        console.error("Auth error:", err);
         res.status(401).json({ error: "Authentication failed" });
     }
 });
 
+// Comment Post
+app.get('/api/posts/:id/comments', (req, res) => {
+    try {
+        const stmt = db.prepare("SELECT * FROM comments WHERE post_id = ? ORDER BY created_at DESC"); //
+        const comments = stmt.all(req.params.id); //
+        res.json(comments);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/posts/:id/details', (req, res) => {
+    try {
+        const post = db.prepare(`
+            SELECT posts.*, users.username 
+            FROM posts 
+            JOIN users ON posts.author_id = users.id 
+            WHERE posts.id = ?
+        `).get(req.params.id);
+
+        const comments = db.prepare(`
+            SELECT comments.*, users.username 
+            FROM comments 
+            JOIN users ON comments.author_id = users.id 
+            WHERE post_id = ? 
+            ORDER BY created_at DESC
+        `).all(req.params.id);
+
+        res.json({ post, comments });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 1 Picture per comment
+app.post('/api/posts/:id/comments', upload.single('image'), (req, res) => {
+    const token = req.cookies.session_id;
+    if (!token) return res.status(401).json({ error: "Not logged in" });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const { content } = req.body;
+        const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+        const stmt = db.prepare("INSERT INTO comments (post_id, author_id, content, image) VALUES (?, ?, ?, ?)"); //
+        stmt.run(req.params.id, decoded.id, content, imagePath); //
+
+        res.json({ success: true });
+    } catch (err) {
+        res.status(401).json({ error: "Unauthorized" });
+    }
+});
 // For static file from folder dist (after npm run build)
 const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, 'dist')));

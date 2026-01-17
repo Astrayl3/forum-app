@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+// Thêm useNavigate vào phần import
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import Login from './Login';
 import Register from './Register';
 import CreatePost from './CreatePost';
 import EditPost from './EditPost';
+import CommentPage from './Comment';
 import './App.css';
 
 axios.defaults.withCredentials = true;
@@ -14,10 +16,12 @@ function App() {
   const { user, logout, loading } = useAuth();
   const [posts, setPosts] = useState([]);
   const location = useLocation();
+  const navigate = useNavigate(); // Khởi tạo navigate
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
   const fetchPosts = async () => {
     try {
+      // Dùng đường dẫn tương đối để Tunnel hoạt động ổn định
       const res = await axios.get('/api/posts');
       setPosts(res.data);
     } catch (err) {
@@ -25,7 +29,8 @@ function App() {
     }
   };
 
-  const handleDelete = async (postId) => {
+  const handleDelete = async (e, postId) => {
+    e.stopPropagation(); // Ngăn chặn sự kiện click vào thẻ cha (chuyển trang)
     if (window.confirm("Do you want to delete this post?")) {
       try {
         await axios.delete(`/api/posts/${postId}`, { withCredentials: true });
@@ -45,6 +50,7 @@ function App() {
   if (loading) {
     return <div className="loading-screen">Loading application...</div>;
   }
+
   return (
     <div className="container">
       <header>
@@ -77,22 +83,34 @@ function App() {
                 
                 <div className="posts-list">
                   {posts.length > 0 ? posts.map(post => (
-                    <div key={post.id} className="post-card">
+                    /* Thêm onClick vào thẻ cha để chuyển trang comment */
+                    <div 
+                      key={post.id} 
+                      className="post-card" 
+                      onClick={() => navigate(`/posts/${post.id}/comments`)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="post-header">
                         <h4>{post.title} {post.is_updated === 1 && <span className="updated-label">(updated)</span>}</h4>
                         {user && user.id === post.author_id && (
                           <div className="post-actions">
-                            <Link to={`/edit-post/${post.id}`} className="edit-link">Edit</Link>
-                            <button onClick={() => handleDelete(post.id)} className="delete-btn">Delete</button>
+                            <Link 
+                              to={`/edit-post/${post.id}`} 
+                              className="edit-link"
+                              onClick={(e) => e.stopPropagation()} // Không nhảy trang comment khi bấm Edit
+                            >
+                              Edit
+                            </Link>
+                            <button onClick={(e) => handleDelete(e, post.id)} className="delete-btn">Delete</button>
                           </div>
                         )}
                       </div>
 
                       <p>{post.content}</p>
                       {post.image && (
-                          <div className="post-image">
-                              <img src={post.image} alt="Post content" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '10px' }} />
-                          </div>
+                        <div className="post-image">
+                          <img src={post.image} alt="Post content" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '10px' }} />
+                        </div>
                       )}
                       <div className="post-meta">
                         <span>Posted by: <strong>{post.username}</strong></span>
@@ -109,6 +127,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/create-post" element={<CreatePost />} />
           <Route path="/edit-post/:id" element={<EditPost />} />
+          <Route path="/posts/:id/comments" element={<CommentPage />} />
         </Routes>
       </main>
 
